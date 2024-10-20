@@ -1,5 +1,3 @@
-// UserNameForm.jsx
-
 import { Formik, Form, Field, ErrorMessage } from "formik";
 
 const UserNameForm = ({ onSubmit }) => {

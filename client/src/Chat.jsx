@@ -3,15 +3,17 @@ import UserNameForm from "./UserNameForm";
 import MessageForm from "./MessageForm";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3001");
+const socket = io("http://localhost:3001", {
+  transports: ["websocket"],
+});
 
 const Chat = () => {
   const [username, setUsername] = useState(() => {
-    return localStorage.getItem("username") || null; // Загружаем имя пользователя из localStorage
+    return localStorage.getItem("username") || null;
   });
   const [messages, setMessages] = useState(() => {
     const savedMessages = localStorage.getItem("messages");
-    return savedMessages ? JSON.parse(savedMessages) : []; // Загружаем историю сообщений
+    return savedMessages ? JSON.parse(savedMessages) : [];
   });
 
   useEffect(() => {
@@ -22,7 +24,7 @@ const Chat = () => {
     socket.on("message", (data) => {
       setMessages((prevMessages) => {
         const updatedMessages = [...prevMessages, data];
-        localStorage.setItem("messages", JSON.stringify(updatedMessages)); // Сохраняем обновленную историю в localStorage
+        localStorage.setItem("messages", JSON.stringify(updatedMessages));
         return updatedMessages;
       });
     });
@@ -35,26 +37,22 @@ const Chat = () => {
 
   const handleUserSubmit = (name) => {
     setUsername(name);
-    localStorage.setItem("username", name); // Сохраняем имя пользователя в localStorage
+    localStorage.setItem("username", name);
     socket.emit("newUser", name);
   };
 
   const handleSendMessage = (message) => {
     const msgData = { username, message };
     socket.emit("message", msgData);
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages, msgData];
-      localStorage.setItem("messages", JSON.stringify(updatedMessages)); // Сохраняем обновленную историю в localStorage
-      return updatedMessages;
-    });
+    // Убираем локальное добавление, ждём от сервера
   };
 
   const handleLeaveChat = () => {
     setUsername(null);
-    localStorage.removeItem("username"); // Удаляем имя пользователя из localStorage
-    setMessages([]); // Очищаем историю сообщений
-    localStorage.removeItem("messages"); // Удаляем историю сообщений из localStorage
-    socket.emit("disconnect"); // Отправляем уведомление серверу о выходе
+    localStorage.removeItem("username");
+    setMessages([]);
+    localStorage.removeItem("messages");
+    socket.disconnect(); // Правильное отключение сокета
   };
 
   return (
