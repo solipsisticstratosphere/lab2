@@ -1,110 +1,79 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./Chat.css"; // Подключаем CSS файл
+import React, { useState, useEffect } from "react";
+import UserNameForm from "./UserNameForm";
+import MessageForm from "./MessageForm";
+import { io } from "socket.io-client";
 
-const generateShortId = () => {
-  // Генерация короткого идентификатора, длина 6 символов
-  return Math.random().toString(36).substr(2, 6);
-};
+const socket = io("http://localhost:3001");
 
 const Chat = () => {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [username, setUsername] = useState("");
-  const [userId, setUserId] = useState(generateShortId()); // Генерируем короткий ID
-  const ws = useRef(null);
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem("username") || null; // Загружаем имя пользователя из localStorage
+  });
+  const [messages, setMessages] = useState(() => {
+    const savedMessages = localStorage.getItem("messages");
+    return savedMessages ? JSON.parse(savedMessages) : []; // Загружаем историю сообщений
+  });
 
   useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:3000");
+    socket.on("connect_error", (err) => {
+      console.error(`Connection error: ${err.message}`);
+    });
 
-    ws.current.onopen = () => {
-      console.log("WebSocket connected");
-      const welcomeMessage = {
-        type: "system",
-        user: username || userId,
-        message: `User ${username || userId} joined the chat`,
-      };
-      ws.current.send(JSON.stringify(welcomeMessage));
-    };
-
-    ws.current.onmessage = (event) => {
-      try {
-        const parsedMessage = JSON.parse(event.data);
-        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
-      } catch (error) {
-        console.error("Failed to parse message:", error);
-      }
-    };
-
-    ws.current.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
-
-    ws.current.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+    socket.on("message", (data) => {
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages, data];
+        localStorage.setItem("messages", JSON.stringify(updatedMessages)); // Сохраняем обновленную историю в localStorage
+        return updatedMessages;
+      });
+    });
 
     return () => {
-      ws.current.close();
+      socket.off("message");
+      socket.off("connect_error");
     };
-  }, [username, userId]);
+  }, []);
 
-  const sendMessage = () => {
-    if (input.trim() && ws.current.readyState === WebSocket.OPEN) {
-      const messageObject = {
-        type: "chat",
-        user: username || userId,
-        message: input,
-      };
-      ws.current.send(JSON.stringify(messageObject));
-      setInput("");
-    }
+  const handleUserSubmit = (name) => {
+    setUsername(name);
+    localStorage.setItem("username", name); // Сохраняем имя пользователя в localStorage
+    socket.emit("newUser", name);
   };
 
-  const handleJoinChat = () => {
-    if (username) {
-      setUserId(userId); // сохраняем userId, если необходимо
-    }
+  const handleSendMessage = (message) => {
+    const msgData = { username, message };
+    socket.emit("message", msgData);
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages, msgData];
+      localStorage.setItem("messages", JSON.stringify(updatedMessages)); // Сохраняем обновленную историю в localStorage
+      return updatedMessages;
+    });
+  };
+
+  const handleLeaveChat = () => {
+    setUsername(null);
+    localStorage.removeItem("username"); // Удаляем имя пользователя из localStorage
+    setMessages([]); // Очищаем историю сообщений
+    localStorage.removeItem("messages"); // Удаляем историю сообщений из localStorage
+    socket.emit("disconnect"); // Отправляем уведомление серверу о выходе
   };
 
   return (
-    <div className="chat-container">
-      <h2>WebSocket Chat</h2>
+    <div>
       {!username ? (
-        <div className="join-container">
-          <input
-            type="text"
-            placeholder="Введите ваше имя"
-            onChange={(e) => setUsername(e.target.value)}
-            className="username-input"
-          />
-          <button onClick={handleJoinChat} className="join-button">
-            Войти в чат
-          </button>
-        </div>
+        <UserNameForm onSubmit={handleUserSubmit} />
       ) : (
-        <>
-          <div className="messages-container">
+        <div>
+          <h2>Welcome, {username}!</h2>
+          <button onClick={handleLeaveChat}>Leave Chat</button>
+          <div>
             {messages.map((msg, index) => (
-              <div key={index} className={`message ${msg.type}`}>
-                <strong>{msg.user ? msg.user.slice(0, 6) : "Unknown"}:</strong>{" "}
-                {msg.message || "Сообщение отсутствует"}
+              <div key={index}>
+                <strong>{msg.username}:</strong> {msg.message}
               </div>
             ))}
           </div>
-          <div className="input-container">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="message-input"
-              placeholder="Ваше сообщение..."
-            />
-            <button onClick={sendMessage} className="send-button">
-              Отправить
-            </button>
-          </div>
-        </>
+          <MessageForm onSend={handleSendMessage} />
+        </div>
       )}
     </div>
   );
