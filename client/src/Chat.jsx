@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import UserNameForm from "./UserNameForm";
 import MessageForm from "./MessageForm";
 import { io } from "socket.io-client";
@@ -29,8 +29,14 @@ const Chat = () => {
       });
     });
 
+    socket.on("clearChat", () => {
+      setMessages([]);
+      localStorage.removeItem("messages");
+    });
+
     return () => {
       socket.off("message");
+      socket.off("clearChat");
       socket.off("connect_error");
     };
   }, []);
@@ -44,7 +50,6 @@ const Chat = () => {
   const handleSendMessage = (message) => {
     const msgData = { username, message };
     socket.emit("message", msgData);
-    // Убираем локальное добавление, ждём от сервера
   };
 
   const handleLeaveChat = () => {
@@ -52,21 +57,31 @@ const Chat = () => {
     localStorage.removeItem("username");
     setMessages([]);
     localStorage.removeItem("messages");
-    socket.disconnect(); // Правильное отключение сокета
+    socket.disconnect();
+  };
+
+  const handleClearChat = () => {
+    socket.emit("clearChat");
   };
 
   return (
-    <div>
+    <div className="chat-container">
       {!username ? (
         <UserNameForm onSubmit={handleUserSubmit} />
       ) : (
-        <div>
-          <h2>Welcome, {username}!</h2>
-          <button onClick={handleLeaveChat}>Leave Chat</button>
-          <div>
+        <div className="chat">
+          <h2 className="welcome-message">Welcome, {username}!</h2>
+          <button onClick={handleLeaveChat} className="leave-button">
+            Leave Chat
+          </button>
+          <button onClick={handleClearChat} className="clear-button">
+            Clear Chat
+          </button>
+          <div className="message-container">
             {messages.map((msg, index) => (
-              <div key={index}>
-                <strong>{msg.username}:</strong> {msg.message}
+              <div key={index} className="message">
+                <strong className="username">{msg.username}:</strong>{" "}
+                <span className="text">{msg.message}</span>
               </div>
             ))}
           </div>

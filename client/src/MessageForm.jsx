@@ -18,20 +18,17 @@ const MessageForm = ({ onSend }) => {
       }}
     >
       {({ isSubmitting }) => (
-        <Form>
-          <div>
+        <Form className="form">
+          <div className="field-wrapper">
             <Field
               type="text"
               name="message"
               placeholder="Type your message..."
+              className="input-field"
             />
-            <ErrorMessage
-              name="message"
-              component="div"
-              style={{ color: "red" }}
-            />
+            <ErrorMessage name="message" component="div" className="error" />
           </div>
-          <button type="submit" disabled={isSubmitting}>
+          <button type="submit" disabled={isSubmitting} className="button">
             Send
           </button>
         </Form>

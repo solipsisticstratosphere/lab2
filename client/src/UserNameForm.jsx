@@ -19,17 +19,15 @@ const UserNameForm = ({ onSubmit }) => {
       }}
     >
       {({ isSubmitting }) => (
-        <Form>
-          <div>
-            <label htmlFor="username">Username</label>
-            <Field type="text" name="username" />
-            <ErrorMessage
-              name="username"
-              component="div"
-              style={{ color: "red" }}
-            />
+        <Form className="form">
+          <div className="field-wrapper">
+            <label htmlFor="username" className="label">
+              Username
+            </label>
+            <Field type="text" name="username" className="input-field" />
+            <ErrorMessage name="username" component="div" className="error" />
           </div>
-          <button type="submit" disabled={isSubmitting}>
+          <button type="submit" disabled={isSubmitting} className="button">
             Submit
           </button>
         </Form>

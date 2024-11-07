@@ -25,6 +25,7 @@ a:hover {
 body {
   margin: 0;
   display: flex;
+  justify-content: center;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
@@ -65,4 +66,110 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+.chat-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #2c2c2c;
+  color: #ffffff;
+}
+
+.welcome-message {
+  color: #46d4f2;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.message-container {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: #3a3a3a;
+}
+
+.message {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #555;
+}
+
+.message:last-child {
+  border-bottom: none;
+}
+
+.username {
+  color: #f9c74f;
+}
+
+.text {
+  color: #e9ecef;
+}
+
+/* Стиль для формы */
+.form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.field-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-field {
+  padding: 0.5rem;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background-color: #2f2f2f;
+  color: #ffffff;
+}
+
+.error {
+  color: #ff4d4d;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+/* Стиль для кнопок */
+.button,
+.leave-button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  background-color: #3d85c6;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover,
+.leave-button:hover {
+  background-color: #0b7dda;
+}
+
+.leave-button {
+  background-color: #d9534f;
+}
+.clear-button {
+  padding: 0.5rem 1rem;
+  margin-bottom: 15px;
+  margin-left: 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  background-color: #ffa726;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.clear-button:hover {
+  background-color: #ff9800;
 }
